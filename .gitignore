@@ -1,0 +1,26 @@
+# Java
+**/target/
+*.class
+*.log
+
+# Node
+**/node_modules/
+**/.next/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Env
+.env
+
+# Local storage
+storage/
+
+# Runtime artifacts
+.pids/
+logs/
+test-results/
