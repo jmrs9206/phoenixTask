@@ -1,0 +1,20 @@
+         code          
+-----------------------
+ company.view
+ company.settings.view
+ users.view
+ teams.view
+ team.members.view
+ projects.view
+ project.members.view
+ permissions.view
+ issues.view
+ scrum.backlog.view
+ messages.read
+ issues.comment.view
+ scrum.sprint.view
+ kanban.board.view
+ gantt.view
+ okr.objective.view
+(16 rows)
+
