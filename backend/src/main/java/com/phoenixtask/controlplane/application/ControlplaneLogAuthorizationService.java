@@ -9,9 +9,15 @@ import com.phoenixtask.workspace.infrastructure.persistence.WorkspacePermissionR
 import com.phoenixtask.workspace.infrastructure.tenant.TenantContext;
 import com.phoenixtask.workspace.security.PermissionCode;
 import java.util.Set;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(
+    name = "phoenixtask.controlplane.persistence.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class ControlplaneLogAuthorizationService {
 
   private final TenantRegistryLookupService tenantRegistryLookupService;

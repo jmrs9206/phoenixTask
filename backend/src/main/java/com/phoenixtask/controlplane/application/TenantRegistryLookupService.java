@@ -8,9 +8,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(
+    name = "phoenixtask.controlplane.persistence.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class TenantRegistryLookupService {
 
   private final ObjectProvider<TenantRegistryJpaRepository> repositoryProvider;

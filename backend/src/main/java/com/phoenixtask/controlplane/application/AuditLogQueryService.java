@@ -8,9 +8,15 @@ import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(
+    name = "phoenixtask.controlplane.persistence.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class AuditLogQueryService {
 
   private final AuditEventJpaRepository repository;

@@ -8,6 +8,8 @@ import com.phoenixtask.controlplane.application.audit.AuditLogService;
 import com.phoenixtask.controlplane.application.audit.AuditOutcome;
 import com.phoenixtask.publicapi.application.PublicApiKeyService;
 import com.phoenixtask.publicapi.domain.PublicApiKeyRecord;
+import com.phoenixtask.publicapi.domain.PublicApiKeyRecord;
+import java.util.Optional;
 import com.phoenixtask.publicapi.domain.PublicApiScope;
 import com.phoenixtask.security.PublicApiPrincipal;
 import com.phoenixtask.security.RequestIdFilter;
@@ -39,21 +41,21 @@ public class PublicApiAuthenticationFilter extends OncePerRequestFilter {
 
   private final PublicApiKeyService keyService;
   private final PublicApiScopeRegistry scopeRegistry;
-  private final TenantRegistryLookupService tenantRegistryLookupService;
-  private final AuditLogService auditLogService;
+  private final Optional<TenantRegistryLookupService> tenantRegistryLookupService;
+  private final Optional<AuditLogService> auditLogService;
   private final ObjectMapper objectMapper;
 
   public PublicApiAuthenticationFilter(
       PublicApiKeyService keyService,
       PublicApiScopeRegistry scopeRegistry,
-      TenantRegistryLookupService tenantRegistryLookupService,
-      AuditLogService auditLogService,
+      @org.springframework.lang.Nullable TenantRegistryLookupService tenantRegistryLookupService,
+      @org.springframework.lang.Nullable AuditLogService auditLogService,
       ObjectMapper objectMapper
   ) {
     this.keyService = keyService;
     this.scopeRegistry = scopeRegistry;
-    this.tenantRegistryLookupService = tenantRegistryLookupService;
-    this.auditLogService = auditLogService;
+    this.tenantRegistryLookupService = Optional.ofNullable(tenantRegistryLookupService);
+    this.auditLogService = Optional.ofNullable(auditLogService);
     this.objectMapper = objectMapper;
   }
 
@@ -88,11 +90,12 @@ public class PublicApiAuthenticationFilter extends OncePerRequestFilter {
         throw new ForbiddenException("Tenant mismatch for API key");
       }
 
-      TenantMetadata metadata = tenantRegistryLookupService.findMetadataByCode(keyRecord.tenantCode())
-          .orElseThrow(() -> new TenantNotFoundException("Tenant not found"));
-      TenantLifecyclePolicy.requireActive(metadata.getStatus());
-
-      TenantContext.set(metadata);
+      if (tenantRegistryLookupService.isPresent()) {
+        TenantMetadata metadata = tenantRegistryLookupService.get().findMetadataByCode(keyRecord.tenantCode())
+            .orElseThrow(() -> new TenantNotFoundException("Tenant not found"));
+        TenantLifecyclePolicy.requireActive(metadata.getStatus());
+        TenantContext.set(metadata);
+      }
 
       PublicApiPrincipal principal = new PublicApiPrincipal(
           keyRecord.id(),
@@ -173,7 +176,9 @@ public class PublicApiAuthenticationFilter extends OncePerRequestFilter {
         requestId,
         buildDetail(scope, detail)
     );
-    auditLogService.record(event);
+    if (auditLogService.isPresent()) {
+      auditLogService.get().record(event);
+    }
   }
 
   private String buildDetail(PublicApiScope scope, String detail) {

@@ -107,15 +107,15 @@ public class SecurityConfig {
   public com.phoenixtask.publicapi.security.PublicApiAuthenticationFilter publicApiAuthenticationFilter(
       com.phoenixtask.publicapi.application.PublicApiKeyService publicApiKeyService,
       com.phoenixtask.publicapi.security.PublicApiScopeRegistry scopeRegistry,
-      com.phoenixtask.controlplane.application.TenantRegistryLookupService tenantRegistryLookupService,
-      com.phoenixtask.controlplane.application.audit.AuditLogService auditLogService,
+      org.springframework.beans.factory.ObjectProvider<com.phoenixtask.controlplane.application.TenantRegistryLookupService> tenantRegistryLookupServiceProvider,
+      org.springframework.beans.factory.ObjectProvider<com.phoenixtask.controlplane.application.audit.AuditLogService> auditLogServiceProvider,
       com.fasterxml.jackson.databind.ObjectMapper objectMapper
   ) {
     return new com.phoenixtask.publicapi.security.PublicApiAuthenticationFilter(
         publicApiKeyService,
         scopeRegistry,
-        tenantRegistryLookupService,
-        auditLogService,
+        tenantRegistryLookupServiceProvider.getIfAvailable(),
+        auditLogServiceProvider.getIfAvailable(),
         objectMapper
     );
   }
