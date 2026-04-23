@@ -1,36 +1,56 @@
-# PhoenixTask®
+# PhoenixTask
 
-PhoenixTask® is a multi-tenant work OS focused on execution: issues, projects, scrum, kanban, gantt, and project-scoped OKR with integrated analytics.
+PhoenixTask es una aplicación web all-in-one, robusta y profesional, diseñada primero para uso propio y después para venta.
 
-## Quick start (local)
-- Start: `./scripts/dev-up.sh --force`
-- Stop: `./scripts/dev-down.sh --force`
-- Reset demo: `./scripts/dev-reset.sh`
-- Smoke check: `./scripts/dev-smoke.sh`
+## Principios base
+- Backend: monolito modular.
+- Frontend: modular por feature.
+- `issue` es el núcleo.
+- `kanban`, `scrum`, `calendar` y `gantt` consumen `issues`.
+- Roles y permisos atómicos.
+- Máximo dato estandarizado, mínimo input libre.
+- Branding/white-label separado.
+- Activity log funcional.
+- Audit log interno solo para owner.
+- Backend y base de datos primero.
+- Storage desacoplado: MinIO ahora, S3 después.
+- MySQL ahora, preparado para portabilidad futura.
 
-Ports (defaults): Postgres `5433`, backend `8080`, frontend `3000`.
+## Módulos objetivo
+### Plataforma
+- auth
+- iam
+- admin
+- settings
+- branding
+- marketing-site
+- shared
 
-Demo credentials:
-- Email: `sofia.ramos@phoenixtask.demo`
-- Password: `PhoenixTask2026!`
-- Tenant code: `demo`
+### Core
+- projects
+- issues
+- teams
+- files
+- activity
 
-## Documentation index
-- Product runbook: `docs/runbook-product.md`
-- Ops runbook: `docs/runbook-ops.md`
-- Deployment & CI/CD runbook: `docs/runbook-deploy.md`
-- Access & permissions guide: `docs/access-guide.md`
-- Known limitations & honesty notes: `docs/limitations.md`
-- Developer onboarding: `docs/onboarding.md`
-- Public API: `docs/public-api.md`
-- Git integrations: `docs/git-integrations.md`
-- Architecture notes: `docs/architecture.md`
+### Ejecución
+- kanban
+- scrum
+- calendar
+- gantt
+- performance
 
-## Frontend
-The frontend is started by `./scripts/dev-up.sh`. It auto-points `NEXT_PUBLIC_BACKEND_URL` to the backend port.
+### Colaboración
+- messaging
+- notifications
 
-## Public API
-Docs: `docs/public-api.md`.
+### Integraciones
+- integration-api
+- integrations/github
+- integrations/gitlab
 
-## Git integrations
-Docs: `docs/git-integrations.md`.
+### Explotación
+- analytics
+
+### Interno plataforma
+- audit
