@@ -62,3 +62,59 @@ Subir la base documental al repo en una rama propia y dejarla como referencia of
 
 ### Prompt siguiente recomendado
 Auditoría/mapeo físico de carpetas objetivo backend y frontend contra el estado actual del repo.
+
+
+
+
+## Sesión 2026-04-23
+### Rama
+rebuild/foundation-clean-base
+
+### Objetivo
+Dejar una base limpia de reconstrucción dentro del repo, sin perder referencia del sistema viejo.
+
+### Hecho
+- Se creó y subió la rama documental.
+- Se guardó el trabajo sucio previo en stash.
+- Se creó un worktree legacy separado en `phoenixTask-legacy`.
+- Se limpió la rama de reconstrucción.
+- Se dejó una base mínima vacía con:
+  - `artifacts/`
+  - `backend/`
+  - `frontend/`
+  - `docker/`
+  - `scripts/`
+- Se conservaron `README.md`, `docs/`, `.gitignore` y `.editorconfig`.
+
+### Archivos tocados
+- README.md
+- docs/
+- artifacts/.gitkeep
+- backend/.gitkeep
+- frontend/.gitkeep
+- docker/.gitkeep
+- scripts/.gitkeep
+
+### Tests ejecutados
+No aplica.
+
+### Decisiones tomadas
+- No se borra el proyecto entero.
+- Se reconstruye limpio dentro del mismo repo.
+- El código viejo queda como referencia en `phoenixTask-legacy`.
+- El trabajo sucio previo queda en stash.
+- Backend first.
+
+### Bloqueos
+Ninguno en este bloque.
+
+### Siguiente paso exacto
+Crear rama de bootstrap backend con MySQL + Flyway + MinIO.
+
+### Prompt siguiente recomendado
+Crear base backend mínima compilable con Spring Boot, MySQL, Flyway, estructura modular inicial y docker local.
+
+
+
+
+
