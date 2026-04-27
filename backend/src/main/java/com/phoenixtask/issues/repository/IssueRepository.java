@@ -35,6 +35,7 @@ public class IssueRepository {
         issue.setPlannedStartDate(rs.getDate("planned_start_date") != null ? rs.getDate("planned_start_date").toLocalDate() : null);
         issue.setDueDate(rs.getDate("due_date") != null ? rs.getDate("due_date").toLocalDate() : null);
         issue.setSprintId(rs.getObject("sprint_id", Long.class));
+        issue.setKanbanPosition(rs.getLong("kanban_position"));
         issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
         return issue;
@@ -51,7 +52,7 @@ public class IssueRepository {
     }
 
     public Issue save(Issue issue) {
-        String sql = "INSERT INTO issues (project_id, issue_number, issue_key, title, description, status, priority, reporter_user_id, assignee_user_id, planned_start_date, due_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO issues (project_id, issue_number, issue_key, title, description, status, priority, reporter_user_id, assignee_user_id, planned_start_date, due_date, kanban_position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -67,6 +68,7 @@ public class IssueRepository {
             ps.setObject(9, issue.getAssigneeUserId());
             ps.setObject(10, issue.getPlannedStartDate());
             ps.setObject(11, issue.getDueDate());
+            ps.setLong(12, issue.getKanbanPosition() != null ? issue.getKanbanPosition() : 0L);
             return ps;
         }, keyHolder);
 
@@ -75,7 +77,7 @@ public class IssueRepository {
     }
 
     public void update(Issue issue) {
-        String sql = "UPDATE issues SET title = ?, description = ?, status = ?, priority = ?, assignee_user_id = ?, planned_start_date = ?, due_date = ? WHERE id = ?";
+        String sql = "UPDATE issues SET title = ?, description = ?, status = ?, priority = ?, assignee_user_id = ?, planned_start_date = ?, due_date = ?, kanban_position = ? WHERE id = ?";
         jdbcTemplate.update(sql,
                 issue.getTitle(),
                 issue.getDescription(),
@@ -84,6 +86,7 @@ public class IssueRepository {
                 issue.getAssigneeUserId(),
                 issue.getPlannedStartDate(),
                 issue.getDueDate(),
+                issue.getKanbanPosition(),
                 issue.getId());
     }
 

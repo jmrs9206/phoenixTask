@@ -17,6 +17,7 @@ public class Issue {
     private LocalDate plannedStartDate;
     private LocalDate dueDate;
     private Long sprintId;
+    private Long kanbanPosition;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -47,6 +48,8 @@ public class Issue {
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
     public Long getSprintId() { return sprintId; }
     public void setSprintId(Long sprintId) { this.sprintId = sprintId; }
+    public Long getKanbanPosition() { return kanbanPosition; }
+    public void setKanbanPosition(Long kanbanPosition) { this.kanbanPosition = kanbanPosition; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
