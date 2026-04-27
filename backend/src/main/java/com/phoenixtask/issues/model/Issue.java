@@ -16,6 +16,7 @@ public class Issue {
     private Long assigneeUserId;
     private LocalDate plannedStartDate;
     private LocalDate dueDate;
+    private Long sprintId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -44,6 +45,8 @@ public class Issue {
     public void setPlannedStartDate(LocalDate plannedStartDate) { this.plannedStartDate = plannedStartDate; }
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+    public Long getSprintId() { return sprintId; }
+    public void setSprintId(Long sprintId) { this.sprintId = sprintId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

@@ -34,6 +34,7 @@ public class IssueRepository {
         issue.setAssigneeUserId(rs.getObject("assignee_user_id", Long.class));
         issue.setPlannedStartDate(rs.getDate("planned_start_date") != null ? rs.getDate("planned_start_date").toLocalDate() : null);
         issue.setDueDate(rs.getDate("due_date") != null ? rs.getDate("due_date").toLocalDate() : null);
+        issue.setSprintId(rs.getObject("sprint_id", Long.class));
         issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
         return issue;
