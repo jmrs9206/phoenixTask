@@ -8,6 +8,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class PhoenixTaskApplicationTests {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Test
     void contextLoads() {
     }

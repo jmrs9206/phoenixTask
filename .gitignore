@@ -24,3 +24,6 @@ storage/
 .pids/
 logs/
 test-results/
+
+backend/.m2/
+backend/target/
