@@ -112,4 +112,14 @@ public class KanbanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DONE"));
     }
+    @Test
+    public void getBoard_InvalidSprint_BadRequest() throws Exception {
+        authenticate("viewer");
+        
+        mockMvc.perform(get("/api/kanban/board?projectId=1&sprintId=0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[?(@.field == 'getBoard.sprintId')]").exists());
+    }
 }
