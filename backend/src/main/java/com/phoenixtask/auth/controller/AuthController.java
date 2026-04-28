@@ -1,7 +1,6 @@
 package com.phoenixtask.auth.controller;
 
 import com.phoenixtask.auth.service.AuthService;
-import com.phoenixtask.auth.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,11 +11,9 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtUtil jwtUtil;
 
-    public AuthController(AuthService authService, JwtUtil jwtUtil) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.jwtUtil = jwtUtil;
     }
 
     record LoginRequest(String email, String password) {}
@@ -62,17 +59,15 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> me(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    public ResponseEntity<Map<String, Object>> me(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
-        String token = authHeader.substring(7);
-        try {
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            String email = jwtUtil.getEmailFromToken(token);
-            return ResponseEntity.ok(Map.of("id", userId, "email", email));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).build();
-        }
+        return ResponseEntity.ok(Map.of(
+            "email", authentication.getName(),
+            "roles", authentication.getAuthorities().stream()
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .toList()
+        ));
     }
 }
