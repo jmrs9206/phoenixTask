@@ -5,6 +5,7 @@ import com.phoenixtask.issues.model.Issue;
 import com.phoenixtask.issues.repository.IssueRepository;
 import com.phoenixtask.projects.model.Project;
 import com.phoenixtask.projects.repository.ProjectRepository;
+import com.phoenixtask.shared.error.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,20 +28,20 @@ public class IssueService {
     }
 
     public Issue getIssueById(Long id) {
-        return issueRepository.findById(id).orElseThrow(() -> new RuntimeException("Issue not found"));
+        return issueRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Issue not found"));
     }
 
     @Transactional
     public Issue createIssue(Issue issue) {
         Project project = projectRepository.findById(issue.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         
         userRepository.findById(issue.getReporterUserId())
-                .orElseThrow(() -> new RuntimeException("Reporter user not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Reporter user not found"));
 
         if (issue.getAssigneeUserId() != null) {
             userRepository.findById(issue.getAssigneeUserId())
-                    .orElseThrow(() -> new RuntimeException("Assignee user not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Assignee user not found"));
         }
 
         int nextNumber = issueRepository.getNextIssueNumber(issue.getProjectId());
@@ -67,7 +68,7 @@ public class IssueService {
 
         if (issue.getAssigneeUserId() != null) {
             userRepository.findById(issue.getAssigneeUserId())
-                    .orElseThrow(() -> new RuntimeException("Assignee user not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Assignee user not found"));
         }
 
         issueRepository.update(issue);

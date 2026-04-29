@@ -18,9 +18,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -28,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
-    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
 })
 @AutoConfigureMockMvc(addFilters = false)
 public class KanbanControllerTest {
@@ -49,7 +51,8 @@ public class KanbanControllerTest {
         List<SimpleGrantedAuthority> authorities = List.of(roles).stream()
                 .map(SimpleGrantedAuthority::new)
                 .toList();
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("user@test.com", "password", authorities);
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("user@test.com", "password",
+                authorities);
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
@@ -59,7 +62,7 @@ public class KanbanControllerTest {
         KanbanBoard board = new KanbanBoard();
         board.setProjectId(1L);
         board.setColumns(List.of(new KanbanColumn("BACKLOG", List.of())));
-        
+
         when(kanbanService.getBoard(1L, null)).thenReturn(board);
 
         mockMvc.perform(get("/api/kanban/board?projectId=1"))
@@ -73,7 +76,7 @@ public class KanbanControllerTest {
         KanbanBoard board = new KanbanBoard();
         board.setProjectId(1L);
         board.setSprintId(2L);
-        
+
         when(kanbanService.getBoard(1L, 2L)).thenReturn(board);
 
         mockMvc.perform(get("/api/kanban/board?projectId=1&sprintId=2"))
@@ -87,7 +90,7 @@ public class KanbanControllerTest {
         KanbanIssueCard card = new KanbanIssueCard();
         card.setId(1L);
         card.setStatus("IN_PROGRESS");
-        
+
         when(kanbanService.moveIssue(anyLong(), anyLong(), anyString(), anyInt())).thenReturn(card);
 
         mockMvc.perform(patch("/api/kanban/issues/1/move")
@@ -103,7 +106,7 @@ public class KanbanControllerTest {
         KanbanIssueCard card = new KanbanIssueCard();
         card.setId(1L);
         card.setStatus("DONE");
-        
+
         when(kanbanService.moveIssue(anyLong(), anyLong(), anyString(), anyInt())).thenReturn(card);
 
         mockMvc.perform(patch("/api/kanban/issues/1/move")
@@ -112,14 +115,27 @@ public class KanbanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DONE"));
     }
+
     @Test
     public void getBoard_InvalidSprint_BadRequest() throws Exception {
         authenticate("viewer");
-        
+
         mockMvc.perform(get("/api/kanban/board?projectId=1&sprintId=0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details[?(@.field == 'getBoard.sprintId')]").exists());
+    }
+
+    @Test
+    public void getBoard_ProjectNotFound_Returns404() throws Exception {
+        authenticate("viewer");
+        when(kanbanService.getBoard(eq(999L), any()))
+                .thenThrow(new com.phoenixtask.shared.error.ResourceNotFoundException("Project not found"));
+
+        mockMvc.perform(get("/api/kanban/board?projectId=999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Project not found"));
     }
 }

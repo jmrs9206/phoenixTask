@@ -6,6 +6,10 @@ import com.phoenixtask.kanban.model.KanbanIssueCard;
 import com.phoenixtask.kanban.repository.KanbanRepository;
 import com.phoenixtask.issues.model.Issue;
 import com.phoenixtask.issues.repository.IssueRepository;
+import com.phoenixtask.projects.repository.ProjectRepository;
+import com.phoenixtask.scrum.repository.SprintRepository;
+import com.phoenixtask.shared.error.BadRequestException;
+import com.phoenixtask.shared.error.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +25,27 @@ public class KanbanService {
     
     private final KanbanRepository kanbanRepository;
     private final IssueRepository issueRepository;
+    private final ProjectRepository projectRepository;
+    private final SprintRepository sprintRepository;
 
-    public KanbanService(KanbanRepository kanbanRepository, IssueRepository issueRepository) {
+    public KanbanService(KanbanRepository kanbanRepository, IssueRepository issueRepository, 
+                         ProjectRepository projectRepository, SprintRepository sprintRepository) {
         this.kanbanRepository = kanbanRepository;
         this.issueRepository = issueRepository;
+        this.projectRepository = projectRepository;
+        this.sprintRepository = sprintRepository;
     }
 
     public KanbanBoard getBoard(Long projectId, Long sprintId) {
+        // Validar existencia del proyecto obligatoriamente
+        if (projectRepository.findById(projectId).isEmpty()) {
+            throw new ResourceNotFoundException("Project not found");
+        }
+        // Si hay sprintId, validar su existencia también
+        if (sprintId != null && sprintRepository.findById(sprintId).isEmpty()) {
+            throw new ResourceNotFoundException("Sprint not found");
+        }
+
         List<KanbanIssueCard> allCards = kanbanRepository.findCardsByProject(projectId, sprintId);
         Map<String, List<KanbanIssueCard>> grouped = allCards.stream()
                 .collect(Collectors.groupingBy(KanbanIssueCard::getStatus));
@@ -46,14 +64,14 @@ public class KanbanService {
     @Transactional
     public KanbanIssueCard moveIssue(Long issueId, Long projectId, String targetStatus, int targetIndex) {
         if (!VALID_STATUSES.contains(targetStatus)) {
-            throw new IllegalArgumentException("Invalid status: " + targetStatus);
+            throw new BadRequestException("Invalid status: " + targetStatus);
         }
 
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Issue not found"));
 
         if (!issue.getProjectId().equals(projectId)) {
-            throw new IllegalArgumentException("Issue does not belong to the specified project");
+            throw new BadRequestException("Issue does not belong to the specified project");
         }
 
         String sourceStatus = issue.getStatus();
@@ -92,6 +110,7 @@ public class KanbanService {
             }
         }
 
-        return kanbanRepository.findCardById(issueId).orElseThrow();
+        return kanbanRepository.findCardById(issueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kanban card not found after move"));
     }
 }
