@@ -14,11 +14,14 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.phoenixtask.shared.error.BadRequestException;
+import com.phoenixtask.shared.error.ResourceNotFoundException;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
@@ -45,7 +48,7 @@ class AuthServiceTest {
         String hash = passwordEncoder.encode("password");
         User user = new User(1L, "test@test.com", "Test", hash, "ACTIVE", false, false, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
         when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
-        when(jwtUtil.generateToken(1L, "test@test.com")).thenReturn("token");
+        when(jwtUtil.generateToken(eq(1L), eq("test@test.com"), anyList())).thenReturn("token");
 
         String result = authService.login("test@test.com", "password");
         assertEquals("token", result);
@@ -76,7 +79,7 @@ class AuthServiceTest {
         User user = new User(2L, "new@test.com", "New", "", "INVITED", false, true, LocalDateTime.now(), null, null);
         when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.of(user));
 
-        authService.acceptInvitation("token123", "newPassword");
+        authService.acceptInvitation("token123", "New User Name", "newPassword");
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
@@ -96,7 +99,7 @@ class AuthServiceTest {
                 LocalDateTime.now().minusDays(1), null, 1L, LocalDateTime.now());
         when(invitationRepository.findByTokenHash(anyString())).thenReturn(Optional.of(inv));
 
-        assertThrows(RuntimeException.class, () -> authService.acceptInvitation("token123", "pass"));
+        assertThrows(BadRequestException.class, () -> authService.acceptInvitation("token123", "New User Name", "pass"));
     }
 
     @Test

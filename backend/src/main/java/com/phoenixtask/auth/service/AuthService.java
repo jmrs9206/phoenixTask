@@ -7,6 +7,9 @@ import com.phoenixtask.iam.model.UserInvitation;
 import com.phoenixtask.iam.repository.PasswordResetTokenRepository;
 import com.phoenixtask.iam.repository.UserInvitationRepository;
 import com.phoenixtask.iam.repository.UserRepository;
+import com.phoenixtask.shared.error.BadRequestException;
+import com.phoenixtask.shared.error.ConflictException;
+import com.phoenixtask.shared.error.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,22 +55,23 @@ public class AuthService {
 
     public String login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new BadRequestException("Invalid credentials"));
 
         if (!"ACTIVE".equals(user.status())) {
-            throw new RuntimeException("User is not active");
+            throw new BadRequestException("User is not active");
         }
 
         if (!passwordEncoder.matches(password, user.passwordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new BadRequestException("Invalid credentials");
         }
 
-        return jwtUtil.generateToken(user.id(), user.email());
+        var roles = userRepository.findRolesByUserId(user.id());
+        return jwtUtil.generateToken(user.id(), user.email(), roles);
     }
 
     public void inviteUser(String email, Long inviterId) {
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("User already exists");
+            throw new ConflictException("User already exists");
         }
 
         String rawToken = UUID.randomUUID().toString();
@@ -83,23 +87,23 @@ public class AuthService {
         log.info("Mock Email: Sent invitation to {} with token: {}", email, rawToken);
     }
 
-    public void acceptInvitation(String rawToken, String newPassword) {
+    public void acceptInvitation(String rawToken, String fullName, String newPassword) {
         String hashedToken = hashToken(rawToken);
         UserInvitation invitation = invitationRepository.findByTokenHash(hashedToken)
-                .orElseThrow(() -> new RuntimeException("Invalid or expired invitation token"));
+                .orElseThrow(() -> new BadRequestException("Invalid or expired invitation token"));
 
         if (invitation.usedAt() != null || invitation.expiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Invalid or expired invitation token");
+            throw new BadRequestException("Invalid or expired invitation token");
         }
 
         User user = userRepository.findByEmail(invitation.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!"INVITED".equals(user.status())) {
-            throw new RuntimeException("User is not in INVITED state");
+            throw new BadRequestException("User is not in INVITED state");
         }
 
-        User updatedUser = new User(user.id(), user.email(), user.displayName(), 
+        User updatedUser = new User(user.id(), user.email(), fullName, 
                 passwordEncoder.encode(newPassword), "ACTIVE", user.isPlatformInternal(), 
                 false, user.createdAt(), LocalDateTime.now(), LocalDateTime.now());
         
@@ -130,14 +134,14 @@ public class AuthService {
     public void confirmPasswordReset(String rawToken, String newPassword) {
         String hashedToken = hashToken(rawToken);
         PasswordResetToken token = resetTokenRepository.findByTokenHash(hashedToken)
-                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
         if (token.usedAt() != null || token.expiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Invalid or expired reset token");
+            throw new BadRequestException("Invalid or expired reset token");
         }
 
         User user = userRepository.findById(token.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         User updatedUser = new User(user.id(), user.email(), user.displayName(), 
                 passwordEncoder.encode(newPassword), user.status(), user.isPlatformInternal(), 

@@ -15,17 +15,16 @@ public class UserRepository {
     private final JdbcTemplate jdbcTemplate;
 
     private final RowMapper<User> rowMapper = (rs, rowNum) -> new User(
-        rs.getLong("id"),
-        rs.getString("email"),
-        rs.getString("display_name"),
-        rs.getString("password_hash"),
-        rs.getString("status"),
-        rs.getBoolean("is_platform_internal"),
-        rs.getBoolean("must_change_password"),
-        rs.getTimestamp("created_at").toLocalDateTime(),
-        rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null,
-        rs.getTimestamp("activated_at") != null ? rs.getTimestamp("activated_at").toLocalDateTime() : null
-    );
+            rs.getLong("id"),
+            rs.getString("email"),
+            rs.getString("display_name"),
+            rs.getString("password_hash"),
+            rs.getString("status"),
+            rs.getBoolean("is_platform_internal"),
+            rs.getBoolean("must_change_password"),
+            rs.getTimestamp("created_at").toLocalDateTime(),
+            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null,
+            rs.getTimestamp("activated_at") != null ? rs.getTimestamp("activated_at").toLocalDateTime() : null);
 
     public UserRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -41,13 +40,36 @@ public class UserRepository {
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
+    public java.util.List<String> findRolesByUserId(Long userId) {
+        return jdbcTemplate.query(
+                "SELECT r.code FROM roles r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = ?",
+                (rs, rowNum) -> rs.getString("code"),
+                userId);
+    }
+
+    public java.util.List<User> findAll() {
+        return jdbcTemplate.query("SELECT * FROM users ORDER BY id DESC", rowMapper);
+    }
+
+    public void addRole(Long userId, String roleCode) {
+        jdbcTemplate.update(
+                "INSERT IGNORE INTO user_roles (user_id, role_id) SELECT ?, id FROM roles WHERE code = ?",
+                userId, roleCode);
+    }
+
+    public void removeRole(Long userId, String roleCode) {
+        jdbcTemplate.update(
+                "DELETE ur FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ? AND r.code = ?",
+                userId, roleCode);
+    }
+
     public User save(User user) {
         if (user.id() == null) {
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(connection -> {
                 PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO users (email, display_name, password_hash, status, is_platform_internal, must_change_password, activated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    new String[]{"id"});
+                        "INSERT INTO users (email, display_name, password_hash, status, is_platform_internal, must_change_password, activated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        new String[] { "id" });
                 ps.setString(1, user.email());
                 ps.setString(2, user.displayName());
                 ps.setString(3, user.passwordHash());
@@ -60,9 +82,9 @@ public class UserRepository {
             return findById(keyHolder.getKey().longValue()).orElseThrow();
         } else {
             jdbcTemplate.update(
-                "UPDATE users SET email=?, display_name=?, password_hash=?, status=?, is_platform_internal=?, must_change_password=?, activated_at=? WHERE id=?",
-                user.email(), user.displayName(), user.passwordHash(), user.status(), user.isPlatformInternal(), user.mustChangePassword(), user.activatedAt(), user.id()
-            );
+                    "UPDATE users SET email=?, display_name=?, password_hash=?, status=?, is_platform_internal=?, must_change_password=?, activated_at=? WHERE id=?",
+                    user.email(), user.displayName(), user.passwordHash(), user.status(), user.isPlatformInternal(),
+                    user.mustChangePassword(), user.activatedAt(), user.id());
             return user;
         }
     }

@@ -13,10 +13,11 @@ public class JwtUtil {
     private final String SECRET = "PhoenixTaskBootstrapSecretKey12345678901234567890";
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    public String generateToken(Long userId, String email) {
+    public String generateToken(Long userId, String email, java.util.List<String> roles) {
         return Jwts.builder()
                 .subject(email)
                 .claim("userId", userId)
+                .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
                 .signWith(key)
@@ -31,5 +32,11 @@ public class JwtUtil {
     public String getEmailFromToken(String token) {
         return Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).getPayload().getSubject();
+    }
+
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getRolesFromToken(String token) {
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload().get("roles", java.util.List.class);
     }
 }
