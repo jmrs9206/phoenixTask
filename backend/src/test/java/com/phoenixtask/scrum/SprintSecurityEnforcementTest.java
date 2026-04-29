@@ -54,7 +54,7 @@ public class SprintSecurityEnforcementTest {
     public void createSprint_ThrowsException_WhenNotAuthenticated() {
         SecurityContextHolder.clearContext();
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> {
-            sprintController.create(new Sprint());
+            sprintController.create(new SprintRequests.CreateSprintRequest(1L, "Sprint 1", null, null, null, "PLANNED"));
         });
     }
 
@@ -62,14 +62,14 @@ public class SprintSecurityEnforcementTest {
     public void createSprint_ThrowsException_WhenRoleInsufficient() {
         authenticate("viewer");
         assertThrows(AccessDeniedException.class, () -> {
-            sprintController.create(new Sprint());
+            sprintController.create(new SprintRequests.CreateSprintRequest(1L, "Sprint 1", null, null, null, "PLANNED"));
         });
     }
 
     @Test
     public void createSprint_Succeeds_WhenManagerRolePresent() {
         authenticate("manager");
-        sprintController.create(new Sprint());
+        sprintController.create(new SprintRequests.CreateSprintRequest(1L, "Sprint 1", null, null, null, "PLANNED"));
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.phoenixtask.issues;
 
-import com.phoenixtask.issues.model.Issue;
 import com.phoenixtask.issues.repository.IssueRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +13,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(properties = {
-    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
 })
 public class IssueSecurityEnforcementTest {
 
@@ -35,40 +33,43 @@ public class IssueSecurityEnforcementTest {
     @MockitoBean
     private JdbcTemplate jdbcTemplate;
 
+    private void authenticate(String... roles) {
+        List<SimpleGrantedAuthority> authorities = List.of(roles).stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("user", "pass", authorities);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
     @Test
     public void createIssue_ThrowsException_WhenNotAuthenticated() {
         SecurityContextHolder.clearContext();
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> {
-            issueController.createIssue(null);
+            issueController.createIssue(
+                    new IssueRequests.CreateIssueRequest(1L, "Title", "Desc", 1L, null, "BACKLOG", "LOW", null, null));
         });
     }
 
     @Test
     public void createIssue_ThrowsException_WhenRoleInsufficient() {
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("viewer"));
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("user", "pass", authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
+        authenticate("viewer");
         assertThrows(AccessDeniedException.class, () -> {
-            issueController.createIssue(null);
+            issueController.createIssue(
+                    new IssueRequests.CreateIssueRequest(1L, "Title", "Desc", 1L, null, "BACKLOG", "LOW", null, null));
         });
     }
 
     @Test
     public void createIssue_Succeeds_WhenManagerRolePresent() {
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("manager"));
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("admin", "pass", authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        issueController.createIssue(new Issue());
+        authenticate("manager");
+        IssueRequests.CreateIssueRequest request = new IssueRequests.CreateIssueRequest(
+                1L, "Title", "Desc", 1L, null, "BACKLOG", "LOW", null, null);
+        issueController.createIssue(request);
     }
 
     @Test
     public void updateStatus_Succeeds_WhenPlatformOwnerRolePresent() {
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("platform_owner"));
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("admin", "pass", authorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        issueController.updateStatus(1L, Map.of("status", "IN_PROGRESS"));
+        authenticate("platform_owner");
+        issueController.updateStatus(1L, new IssueRequests.UpdateStatusRequest("IN_PROGRESS"));
     }
 }

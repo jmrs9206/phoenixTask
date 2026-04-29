@@ -106,4 +106,18 @@ public class IssueControllerTest {
                 .content("{\"status\":\"IN_PROGRESS\"}"))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    public void updateIssue_AssigneeNotFound_Returns404() throws Exception {
+        authenticate("manager");
+        when(issueService.updateIssue(eq(1L), any()))
+                .thenThrow(new com.phoenixtask.shared.error.ResourceNotFoundException("Assignee user not found"));
+
+        mockMvc.perform(patch("/api/issues/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"Updated Title\", \"assigneeUserId\":999}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Assignee user not found"));
+    }
 }

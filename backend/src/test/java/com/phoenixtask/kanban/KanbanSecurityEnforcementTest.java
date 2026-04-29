@@ -1,6 +1,5 @@
 package com.phoenixtask.kanban;
 
-import com.phoenixtask.kanban.KanbanController.MoveRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,10 +39,7 @@ public class KanbanSecurityEnforcementTest {
     @Test
     public void moveIssue_ThrowsAccessDenied_WhenViewerRole() {
         authenticate("viewer");
-        MoveRequest request = new MoveRequest();
-        request.setProjectId(1L);
-        request.setTargetStatus("DONE");
-        request.setTargetIndex(0);
+        KanbanRequests.MoveRequest request = new KanbanRequests.MoveRequest(1L, "DONE", 0);
 
         assertThrows(AccessDeniedException.class, () -> {
             kanbanController.moveIssue(1L, request);
@@ -53,10 +49,7 @@ public class KanbanSecurityEnforcementTest {
     @Test
     public void moveIssue_Succeeds_WhenManagerRole() {
         authenticate("manager");
-        MoveRequest request = new MoveRequest();
-        request.setProjectId(1L);
-        request.setTargetStatus("DONE");
-        request.setTargetIndex(0);
+        KanbanRequests.MoveRequest request = new KanbanRequests.MoveRequest(1L, "DONE", 0);
 
         kanbanController.moveIssue(1L, request);
     }
@@ -64,10 +57,7 @@ public class KanbanSecurityEnforcementTest {
     @Test
     public void moveIssue_Succeeds_WhenQaRole() {
         authenticate("qa");
-        MoveRequest request = new MoveRequest();
-        request.setProjectId(1L);
-        request.setTargetStatus("IN_REVIEW");
-        request.setTargetIndex(0);
+        KanbanRequests.MoveRequest request = new KanbanRequests.MoveRequest(1L, "IN_REVIEW", 0);
 
         kanbanController.moveIssue(1L, request);
     }
