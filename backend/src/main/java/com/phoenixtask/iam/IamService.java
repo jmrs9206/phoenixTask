@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
+import com.phoenixtask.iam.model.UserDetailResponse;
 
 @Service
 public class IamService {
@@ -22,11 +22,11 @@ public class IamService {
         return userRepository.findAll();
     }
 
-    public Map<String, Object> getUserDetail(Long id) {
+    public UserDetailResponse getUserDetail(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         List<String> roles = userRepository.findRolesByUserId(id);
-        return Map.of("user", user, "roles", roles);
+        return new UserDetailResponse(user.id(), user.email(), user.displayName(), user.status(), roles);
     }
 
     @Transactional

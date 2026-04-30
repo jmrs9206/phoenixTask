@@ -92,7 +92,7 @@ public class IssueControllerTest {
         mockMvc.perform(post("/api/issues")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"projectId\":1, \"title\":\"New Issue\", \"reporterUserId\":1}"))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.issueKey").value("PRJ-1"));
     }
 
@@ -104,7 +104,7 @@ public class IssueControllerTest {
         mockMvc.perform(patch("/api/issues/1/status")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"IN_PROGRESS\"}"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
     }
 
     @Test

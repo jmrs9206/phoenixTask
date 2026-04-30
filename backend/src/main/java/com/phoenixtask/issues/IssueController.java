@@ -45,7 +45,7 @@ public class IssueController {
         issue.setPriority(request.priority());
         issue.setPlannedStartDate(request.plannedStartDate());
         issue.setDueDate(request.dueDate());
-        return ResponseEntity.ok(issueService.createIssue(issue));
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(issueService.createIssue(issue));
     }
 
     @PatchMapping("/{id}")
@@ -66,6 +66,6 @@ public class IssueController {
     @PreAuthorize("hasAnyAuthority('platform_owner', 'manager')")
     public ResponseEntity<Void> updateStatus(@PathVariable @Min(1) Long id, @Valid @RequestBody IssueRequests.UpdateStatusRequest request) {
         issueService.updateStatus(id, request.status());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

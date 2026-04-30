@@ -11,7 +11,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
+import java.util.List;
+import com.phoenixtask.iam.model.UserDetailResponse;
 
 @RestController
 @RequestMapping("/api/iam")
@@ -32,27 +33,19 @@ public class IamController {
 
     @GetMapping("/users/{id}")
     @PreAuthorize("hasAuthority('platform_owner')")
-    public Map<String, Object> getUserDetail(@PathVariable @Min(1) Long id) {
+    public UserDetailResponse getUserDetail(@PathVariable @Min(1) Long id) {
         return iamService.getUserDetail(id);
     }
 
-    record UpdateStatusRequest(
-        @NotBlank @Pattern(regexp = "ACTIVE|INACTIVE|INVITED|LOCKED") String status
-    ) {}
-
     @PatchMapping("/users/{id}/status")
     @PreAuthorize("hasAuthority('platform_owner')")
-    public void updateStatus(@PathVariable @Min(1) Long id, @Valid @RequestBody UpdateStatusRequest request) {
+    public void updateStatus(@PathVariable @Min(1) Long id, @Valid @RequestBody IamRequests.UpdateStatusRequest request) {
         iamService.updateUserStatus(id, request.status());
     }
 
-    record AddRoleRequest(
-        @NotBlank String role
-    ) {}
-
     @PostMapping("/users/{id}/roles")
     @PreAuthorize("hasAuthority('platform_owner')")
-    public void addRole(@PathVariable @Min(1) Long id, @Valid @RequestBody AddRoleRequest request) {
+    public void addRole(@PathVariable @Min(1) Long id, @Valid @RequestBody IamRequests.AddRoleRequest request) {
         iamService.addRole(id, request.role());
     }
 

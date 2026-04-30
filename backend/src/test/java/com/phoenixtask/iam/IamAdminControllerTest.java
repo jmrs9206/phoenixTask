@@ -83,7 +83,7 @@ public class IamAdminControllerTest {
 
         mockMvc.perform(get("/api/iam/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user.email").value("user@test.com"))
+                .andExpect(jsonPath("$.email").value("user@test.com"))
                 .andExpect(jsonPath("$.roles[0]").value("DEVELOPER"));
     }
 
